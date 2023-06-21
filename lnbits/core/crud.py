@@ -683,7 +683,8 @@ async def get_payments_history(
         f"""
         SELECT {date_trunc} date,
                SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) income,
-               SUM(CASE WHEN amount < 0 THEN abs(amount) + abs(fee) ELSE 0 END) spending
+               SUM(CASE WHEN amount < 0 THEN abs(amount) + abs(fee) ELSE 0 END) spending,
+               COUNT(*) count
         FROM apipayments
         {filters.where(where)}
         GROUP BY date
@@ -707,7 +708,11 @@ async def get_payments_history(
         results.insert(
             0,
             PaymentHistoryPoint(
-                balance=balance, date=row[0], income=row[1], spending=row[2]
+                balance=balance,
+                date=row[0],
+                income=row[1],
+                spending=row[2],
+                count=row[3],
             ),
         )
         balance -= row.income - row.spending
