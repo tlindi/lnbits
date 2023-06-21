@@ -1,5 +1,6 @@
 {% extends "base.html" %} {% from "macros.jinja" import window_vars with context
 %} {% block page %}
+
 <div class="row q-col-gutter-md justify-center">
   <div class="col q-my-md">
     <q-btn
@@ -115,6 +116,27 @@
   </div>
 </div>
 
+<q-dialog v-model="paymentsChart.show">
+  <q-card class="q-pa-sm" style="width: 800px; max-width: unset">
+    <q-card-section>
+      <div class="row q-gutter-sm justify-between">
+        <div class="text-h6">Payments Chart</div>
+        <q-select
+          label="Group"
+          filled
+          dense
+          v-model="paymentsChart.group"
+          style="min-width: 120px"
+          :options="paymentsChart.groupOptions"
+        >
+        </q-select>
+      </div>
+
+      <canvas ref="canvas" width="600" height="400"></canvas>
+    </q-card-section>
+  </q-card>
+</q-dialog>
+
 <q-dialog v-if="isSuperUser" v-model="topUpDialog.show" position="top">
   <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
     <q-form class="q-gutter-md">
@@ -209,6 +231,16 @@
         formAllowedIPs: '',
         formBlockedIPs: '',
         isSuperUser: false,
+        paymentsChart: {
+          show: false,
+          group: {value: 'day', label: 'Day'},
+          groupOptions: [
+            {value: 'month', label: 'Month'},
+            {value: 'day', label: 'Day'},
+            {value: 'hour', label: 'Hour'}
+          ],
+          instance: null
+        },
         wallet: {},
         cancel: {},
         topUpDialog: {
@@ -407,6 +439,11 @@
       },
       updateAvailable() {
         return LNBITS_VERSION !== this.statusData.version
+      }
+    },
+    watch: {
+      'paymentsChart.group': function () {
+        this.showChart()
       }
     },
     methods: {
@@ -677,7 +714,29 @@
           })
       },
       downloadBackup() {
-        window.open('/admin/api/v1/backup/?usr=' + this.g.user.id, '_blank')
+        this.showChart()
+        //window.open('/admin/api/v1/backup/?usr=' + this.g.user.id, '_blank')
+      },
+      showChart: function () {
+        this.paymentsChart.show = true
+        LNbits.api
+          .request(
+            'GET',
+            `/admin/api/v1/payments/history?group=${this.paymentsChart.group.value}&usr=${this.g.user.id}&time[gt]=2023-06-01 00:00:00`
+          )
+          .then(response => {
+            this.$nextTick(() => {
+              this.paymentsChart.instance?.destroy()
+              this.paymentsChart.instance = LNbits.utils.generateChart(
+                this.$refs.canvas,
+                response.data
+              )
+            })
+          })
+          .catch(err => {
+            LNbits.utils.notifyApiError(err)
+            this.paymentsChart.show = false
+          })
       }
     }
   })

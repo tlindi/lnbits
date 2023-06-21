@@ -3,26 +3,35 @@ import time
 from http import HTTPStatus
 from shutil import make_archive
 from subprocess import Popen
-from typing import Optional
+from typing import List, Optional
 from urllib.parse import urlparse
 
-from fastapi import Depends
+from fastapi import Depends, Query
 from fastapi.responses import FileResponse
 from starlette.exceptions import HTTPException
 
 from lnbits.core.crud import get_wallet
-from lnbits.core.models import CreateTopup, User
+from lnbits.core.models import CreateTopup, PaymentFilters, PaymentHistoryPoint, User
 from lnbits.core.services import (
     get_balance_delta,
     update_cached_settings,
     update_wallet_balance,
 )
-from lnbits.decorators import check_admin, check_super_user
+from lnbits.db import Filters
+from lnbits.decorators import check_admin, check_super_user, parse_filters
+from lnbits.helpers import generate_filter_params_openapi
 from lnbits.server import server_restart
 from lnbits.settings import AdminSettings, EditableSettings, settings
 
 from .. import core_app, core_app_extra
-from ..crud import delete_admin_settings, get_admin_settings, update_admin_settings
+from ..crud import (
+    DateTrunc,
+    delete_admin_settings,
+    get_admin_settings,
+    get_payments_history,
+    update_admin_settings,
+    update_pending_payments,
+)
 
 
 @core_app.get(
@@ -87,6 +96,20 @@ async def api_delete_settings() -> None:
 async def api_restart_server() -> dict[str, str]:
     server_restart.set()
     return {"status": "Success"}
+
+
+@core_app.get(
+    "/admin/api/v1/payments/history",
+    response_model=List[PaymentHistoryPoint],
+    openapi_extra=generate_filter_params_openapi(PaymentFilters),
+    dependencies=[Depends(check_admin)],
+)
+async def api_full_payments_history(
+    group: DateTrunc = Query("day"),
+    filters: Filters[PaymentFilters] = Depends(parse_filters(PaymentFilters)),
+):
+    await update_pending_payments()
+    return await get_payments_history(group=group, filters=filters)
 
 
 @core_app.put(

@@ -337,6 +337,93 @@ window.LNbits = {
           icon: null
         })
       }
+    },
+    generateChart: function (canvas, rawData) {
+      const data = rawData.reduce(
+        (previous, current) => {
+          previous.labels.push(current.date)
+          previous.income.push(current.income)
+          previous.spending.push(current.spending)
+          previous.cumulative.push(current.balance)
+          return previous
+        },
+        {
+          labels: [],
+          income: [],
+          spending: [],
+          cumulative: []
+        }
+      )
+
+      return new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: data.labels,
+          datasets: [
+            {
+              data: data.cumulative,
+              type: 'line',
+              label: 'balance',
+              backgroundColor: '#673ab7', // deep-purple
+              borderColor: '#673ab7',
+              borderWidth: 4,
+              pointRadius: 3,
+              fill: false
+            },
+            {
+              data: data.income,
+              type: 'bar',
+              label: 'in',
+              barPercentage: 0.75,
+              backgroundColor: window
+                .Color('rgb(76,175,80)')
+                .alpha(0.5)
+                .rgbString() // green
+            },
+            {
+              data: data.spending,
+              type: 'bar',
+              label: 'out',
+              barPercentage: 0.75,
+              backgroundColor: window
+                .Color('rgb(233,30,99)')
+                .alpha(0.5)
+                .rgbString() // pink
+            }
+          ]
+        },
+        options: {
+          title: {
+            text: 'Chart.js Combo Time Scale'
+          },
+          tooltips: {
+            mode: 'index',
+            intersect: false
+          },
+          scales: {
+            xAxes: [
+              {
+                type: 'time',
+                display: true,
+                //offset: true,
+                time: {
+                  minUnit: 'hour',
+                  stepSize: 3
+                }
+              }
+            ]
+          },
+          // performance tweaks
+          animation: {
+            duration: 0
+          },
+          elements: {
+            line: {
+              tension: 0
+            }
+          }
+        }
+      })
     }
   }
 }

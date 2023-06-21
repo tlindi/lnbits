@@ -641,7 +641,7 @@ async def update_payment_extra(
     )
 
 
-async def update_pending_payments(wallet_id: str):
+async def update_pending_payments(wallet_id: Optional[str] = None):
     pending_payments = await get_payments(
         wallet_id=wallet_id,
         pending=True,
@@ -683,13 +683,13 @@ async def get_payments_history(
         f"""
         SELECT {date_trunc} date,
                SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) income,
-               SUM(CASE WHEN amount < 0 THEN abs(amount) + abs(fee) ELSE 0 END) spending,
+               SUM(CASE WHEN amount < 0 THEN abs(amount) + abs(fee) ELSE 0 END) spending,  
                COUNT(*) count
         FROM apipayments
         {filters.where(where)}
         GROUP BY date
         ORDER BY date DESC
-        """,
+        """,  # noqa
         filters.values(values),
     )
     if wallet_id:
