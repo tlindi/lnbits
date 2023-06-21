@@ -345,13 +345,15 @@ window.LNbits = {
           previous.income.push(current.income)
           previous.spending.push(current.spending)
           previous.cumulative.push(current.balance)
+          previous.count.push(current.count)
           return previous
         },
         {
           labels: [],
           income: [],
           spending: [],
-          cumulative: []
+          cumulative: [],
+          count: []
         }
       )
 
@@ -368,7 +370,8 @@ window.LNbits = {
               borderColor: '#673ab7',
               borderWidth: 4,
               pointRadius: 3,
-              fill: false
+              fill: false,
+              yAxisID: 'balance'
             },
             {
               data: data.income,
@@ -378,7 +381,8 @@ window.LNbits = {
               backgroundColor: window
                 .Color('rgb(76,175,80)')
                 .alpha(0.5)
-                .rgbString() // green
+                .rgbString(), // green
+              yAxisID: 'balance'
             },
             {
               data: data.spending,
@@ -388,7 +392,19 @@ window.LNbits = {
               backgroundColor: window
                 .Color('rgb(233,30,99)')
                 .alpha(0.5)
-                .rgbString() // pink
+                .rgbString(), // pink
+              yAxisID: 'balance'
+            },
+            {
+              data: data.count,
+              type: 'bar',
+              label: 'count',
+              barPercentage: 0.75,
+              backgroundColor: window
+                .Color('rgb(33,30,209)')
+                .alpha(0.5)
+                .rgbString(), // blue
+              yAxisID: 'count'
             }
           ]
         },
@@ -410,6 +426,23 @@ window.LNbits = {
                   minUnit: 'hour',
                   stepSize: 3
                 }
+              }
+            ],
+            yAxes: [
+              {
+                id: 'balance',
+                type: 'linear',
+                position: 'left'
+              },
+              {
+                id: 'changes',
+                type: 'linear',
+                position: 'right'
+              },
+              {
+                id: 'count',
+                type: 'linear',
+                position: 'right'
               }
             ]
           },
