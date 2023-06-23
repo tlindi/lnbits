@@ -117,15 +117,26 @@
 </div>
 
 <q-dialog v-model="paymentsChart.show">
-  <q-card class="q-pa-sm" style="width: 800px; max-width: unset">
+  <q-card class="q-pa-sm" style="max-width: unset">
     <q-card-section>
-      <div class="row q-gutter-sm justify-between">
-        <div class="text-h6">Payments Chart</div>
+      <div class="row q-gutter-sm items-center no-wrap">
+        <div class="text-h6 q-mr-md">Payments Chart</div>
+
+        <lnbits-datetime-input
+          :date="paymentsChart.params.since"
+          @update:date="val => paymentsChart.params.since = val"
+        ></lnbits-datetime-input>
+
+        <lnbits-datetime-input
+          :date="paymentsChart.params.to"
+          @update:date="val => paymentsChart.params.to = val"
+        ></lnbits-datetime-input>
+
         <q-select
           label="Group"
           filled
           dense
-          v-model="paymentsChart.group"
+          v-model="paymentsChart.params.group"
           style="min-width: 120px"
           :options="paymentsChart.groupOptions"
         >
@@ -233,13 +244,17 @@
         isSuperUser: false,
         paymentsChart: {
           show: false,
-          group: {value: 'day', label: 'Day'},
           groupOptions: [
             {value: 'month', label: 'Month'},
             {value: 'day', label: 'Day'},
             {value: 'hour', label: 'Hour'}
           ],
-          instance: null
+          instance: null,
+          params: {
+            group: {value: 'day', label: 'Day'},
+            since: null,
+            to: null
+          }
         },
         wallet: {},
         cancel: {},
@@ -442,8 +457,11 @@
       }
     },
     watch: {
-      'paymentsChart.group': function () {
-        this.showChart()
+      'paymentsChart.params': {
+        handler() {
+          this.showChart()
+        },
+        deep: true
       }
     },
     methods: {
@@ -714,15 +732,21 @@
           })
       },
       downloadBackup() {
-        this.showChart()
-        //window.open('/admin/api/v1/backup/?usr=' + this.g.user.id, '_blank')
+        window.open('/admin/api/v1/backup/?usr=' + this.g.user.id, '_blank')
       },
       showChart: function () {
         this.paymentsChart.show = true
+        const params = this.paymentsChart.params
+        const urlParams = new URLSearchParams({
+          group: params.group.value,
+          usr: this.g.user.id,
+          'time[gt]': params.since,
+          'time[lt]': params.to
+        })
         LNbits.api
           .request(
             'GET',
-            `/admin/api/v1/payments/history?group=${this.paymentsChart.group.value}&usr=${this.g.user.id}&time[gt]=2023-06-01 00:00:00`
+            '/admin/api/v1/payments/history?' + urlParams.toString()
           )
           .then(response => {
             this.$nextTick(() => {
