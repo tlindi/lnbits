@@ -11,7 +11,7 @@ from lnbits.commands import migrate_databases
 from lnbits.core.crud import create_account, create_wallet
 from lnbits.core.models import CreateInvoice
 from lnbits.core.services import update_wallet_balance
-from lnbits.core.views.api import CreateInvoiceData, api_payments_create_invoice
+from lnbits.core.views.api import api_payments_create_invoice
 from lnbits.db import DB_TYPE, SQLITE, Database
 from lnbits.settings import settings
 from tests.helpers import get_hold_invoice, get_random_invoice_data, get_real_invoice
