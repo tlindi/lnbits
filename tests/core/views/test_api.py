@@ -84,6 +84,19 @@ async def test_create_invoice(client, inkey_headers_to):
     return invoice
 
 
+@pytest.mark.asyncio
+async def test_create_invoice_fiat_amount(client, inkey_headers_to):
+    data = await get_random_invoice_data()
+    data["unit"] = "EUR"
+    response = await client.post(
+        "/api/v1/payments", json=data, headers=inkey_headers_to
+    )
+    assert response.status_code == 201
+    invoice = response.json()
+    decode = bolt11.decode(invoice["payment_request"])
+    assert decode.amount_msat != data["amount"] * 1000
+
+
 # check POST /api/v1/payments: invoice creation for internal payments only
 @pytest.mark.asyncio
 async def test_create_internal_invoice(client, inkey_headers_to):
@@ -210,10 +223,10 @@ async def test_pay_invoice_adminkey(client, invoice, adminkey_headers_from):
 
 @pytest.mark.asyncio
 async def test_get_payments(client, from_wallet, adminkey_headers_from):
-    # Because sqlite only stores timestamps with milliseconds we have to wait a second to ensure
-    # a different timestamp than previous invoices
-    # due to this limitation both payments (normal and paginated) are tested at the same time as they are almost
-    # identical anyways
+    # Because sqlite only stores timestamps with milliseconds we have to wait a second
+    # to ensure a different timestamp than previous invoices due to this limitation
+    # both payments (normal and paginated) are tested at the same time as they are
+    # almost identical anyways
     if DB_TYPE == SQLITE:
         await asyncio.sleep(1)
     ts = time()

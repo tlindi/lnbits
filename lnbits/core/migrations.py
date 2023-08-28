@@ -239,7 +239,8 @@ async def m007_set_invoice_expiries(db):
                     invoice.date + invoice.expiry
                 )
                 logger.info(
-                    f"Migration: {i+1}/{len(rows)} setting expiry of invoice {invoice.payment_hash} to {expiration_date}"
+                    f"Migration: {i+1}/{len(rows)} setting expiry of invoice"
+                    f" {invoice.payment_hash} to {expiration_date}"
                 )
                 await db.execute(
                     """
@@ -299,5 +300,22 @@ async def m010_create_installed_extensions_table(db):
             active BOOLEAN DEFAULT false,
             meta TEXT NOT NULL DEFAULT '{}'
         );
+    """
+    )
+
+
+async def m011_optimize_balances_view(db):
+    """
+    Make the calculation of the balance a single aggregation
+    over the payments table instead of 2.
+    """
+    await db.execute("DROP VIEW balances")
+    await db.execute(
+        """
+        CREATE VIEW balances AS
+        SELECT wallet, SUM(amount - abs(fee)) AS balance
+        FROM apipayments
+        WHERE (pending = false AND amount > 0) OR amount < 0
+        GROUP BY wallet
     """
     )

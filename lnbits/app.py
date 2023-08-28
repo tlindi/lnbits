@@ -62,7 +62,7 @@ from .tasks import (
 def create_app() -> FastAPI:
     configure_logger()
     app = FastAPI(
-        title="LNbits API",
+        title=settings.lnbits_title,
         description=(
             "API for LNbits, the free and open source bitcoin wallet and "
             "accounts system with plugins."
@@ -413,9 +413,11 @@ def get_db_vendor_name():
     return (
         "PostgreSQL"
         if db_url and db_url.startswith("postgres://")
-        else "CockroachDB"
-        if db_url and db_url.startswith("cockroachdb://")
-        else "SQLite"
+        else (
+            "CockroachDB"
+            if db_url and db_url.startswith("cockroachdb://")
+            else "SQLite"
+        )
     )
 
 
@@ -518,19 +520,19 @@ def configure_logger() -> None:
 class Formatter:
     def __init__(self):
         self.padding = 0
-        self.minimal_fmt: str = (
+        self.minimal_fmt = (
             "<green>{time:YYYY-MM-DD HH:mm:ss.SS}</green> | <level>{level}</level> | "
             "<level>{message}</level>\n"
         )
         if settings.debug:
-            self.fmt: str = (
+            self.fmt = (
                 "<green>{time:YYYY-MM-DD HH:mm:ss.SS}</green> | "
                 "<level>{level: <4}</level> | "
                 "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
                 "<level>{message}</level>\n"
             )
         else:
-            self.fmt: str = self.minimal_fmt
+            self.fmt = self.minimal_fmt
 
     def format(self, record):
         function = "{function}".format(**record)

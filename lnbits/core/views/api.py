@@ -29,10 +29,10 @@ from lnbits.core.helpers import (
     stop_extension_background_work,
 )
 from lnbits.core.models import (
-    Callback,
     ConversionData,
     CreateInvoice,
     CreateLnurl,
+    CreateLnurlAuth,
     DecodePayment,
     Payment,
     PaymentFilters,
@@ -187,30 +187,29 @@ async def api_payments_paginated(
 
 
 async def api_payments_create_invoice(data: CreateInvoice, wallet: Wallet):
-    extra = data.extra or {}
+    data.extra = data.extra or {}
+    description_hash = b""
+    unhashed_description = b""
+    memo = data.memo or settings.lnbits_site_title
     if data.description_hash or data.unhashed_description:
-        try:
-            description_hash = (
-                bytes.fromhex(data.description_hash) if data.description_hash else b""
-            )
-            unhashed_description = (
-                bytes.fromhex(data.unhashed_description)
-                if data.unhashed_description
-                else b""
-            )
-        except ValueError:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail=(
-                    "'description_hash' and 'unhashed_description' "
-                    "must be a valid hex strings"
-                ),
-            )
+        if data.description_hash:
+            try:
+                description_hash = bytes.fromhex(data.description_hash)
+            except ValueError:
+                raise HTTPException(
+                    status_code=HTTPStatus.BAD_REQUEST,
+                    detail="'description_hash' must be a valid hex string",
+                )
+        if data.unhashed_description:
+            try:
+                unhashed_description = bytes.fromhex(data.unhashed_description)
+            except ValueError:
+                raise HTTPException(
+                    status_code=HTTPStatus.BAD_REQUEST,
+                    detail="'unhashed_description' must be a valid hex string",
+                )
+        # do not save memo if description_hash or unhashed_description is set
         memo = ""
-    else:
-        description_hash = b""
-        unhashed_description = b""
-        memo = data.memo or settings.lnbits_site_title
 
     if data.unit == "sat":
         amount = int(data.amount)
@@ -218,7 +217,7 @@ async def api_payments_create_invoice(data: CreateInvoice, wallet: Wallet):
         assert data.unit is not None, "unit not set"
         price_in_sats = await fiat_amount_as_satoshis(data.amount, data.unit)
         amount = price_in_sats
-        extra.update({"fiat_amount": data.amount, "fiat_currency": data.unit})
+        data.extra.update({"fiat_amount": data.amount, "fiat_currency": data.unit})
 
     async with db.connect() as conn:
         try:
@@ -234,8 +233,9 @@ async def api_payments_create_invoice(data: CreateInvoice, wallet: Wallet):
                 internal=data.internal,
                 conn=conn,
             )
-            # NOTE: we get the checking_id with a seperate query because create_invoice does not return it
-            # and it would be a big hustle to change its return type (used across extensions)
+            # NOTE: we get the checking_id with a seperate query because create_invoice
+            # does not return it and it would be a big hustle to change its return type
+            # (used across extensions)
             payment_db = await get_standalone_payment(payment_hash, conn=conn)
             assert payment_db is not None, "payment not found"
             checking_id = payment_db.checking_id
@@ -309,12 +309,13 @@ async def api_payments_pay_invoice(bolt11: str, wallet: Wallet):
     "/api/v1/payments",
     summary="Create or pay an invoice",
     description="""
-This endpoint can be used both to generate and pay a BOLT11 invoice.
-To generate a new invoice for receiving funds into the authorized account,
-specify at least the first four fields in the POST body: `out: false`, `amount`, `unit`, and `memo`.
-To pay an arbitrary invoice from the funds already in the authorized account,
-specify `out: true` and use the `bolt11` field to supply the BOLT11 invoice to be paid.
-""",
+        This endpoint can be used both to generate and pay a BOLT11 invoice.
+        To generate a new invoice for receiving funds into the authorized account,
+        specify at least the first four fields in the POST body: `out: false`,
+        `amount`, `unit`, and `memo`. To pay an arbitrary invoice from the funds
+        already in the authorized account, specify `out: true` and use the `bolt11`
+        field to supply the BOLT11 invoice to be paid.
+    """,
     status_code=HTTPStatus.CREATED,
 )
 async def api_payments_create(
@@ -379,8 +380,10 @@ async def api_payments_pay_lnurl(
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail=(
-                f"{domain} returned an invalid invoice. Expected {data.amount} msat, "
-                f"got {invoice.amount_msat}.",
+                (
+                    f"{domain} returned an invalid invoice. Expected"
+                    f" {data.amount} msat, got {invoice.amount_msat}."
+                ),
             ),
         )
 
@@ -388,8 +391,10 @@ async def api_payments_pay_lnurl(
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail=(
-                f"{domain} returned an invalid invoice. Expected description_hash == "
-                f"{data.description_hash}, got {invoice.description_hash}.",
+                (
+                    f"{domain} returned an invalid invoice. Expected description_hash"
+                    f" == {data.description_hash}, got {invoice.description_hash}."
+                ),
             ),
         )
 
@@ -643,7 +648,7 @@ async def api_payments_decode(data: DecodePayment, response: Response):
 
 @core_app.post("/api/v1/lnurlauth")
 async def api_perform_lnurlauth(
-    data: Callback, wallet: WalletTypeInfo = Depends(require_admin_key)
+    data: CreateLnurlAuth, wallet: WalletTypeInfo = Depends(require_admin_key)
 ):
     err = await perform_lnurlauth(data.callback, wallet=wallet)
     if err:
@@ -900,7 +905,11 @@ async def delete_extension_db(ext_id: str):
 # TINYURL
 
 
-@core_app.post("/api/v1/tinyurl")
+@core_app.post(
+    "/api/v1/tinyurl",
+    name="Tinyurl",
+    description="creates a tinyurl",
+)
 async def api_create_tinyurl(
     url: str, endless: bool = False, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
@@ -917,7 +926,11 @@ async def api_create_tinyurl(
         )
 
 
-@core_app.get("/api/v1/tinyurl/{tinyurl_id}")
+@core_app.get(
+    "/api/v1/tinyurl/{tinyurl_id}",
+    name="Tinyurl",
+    description="get a tinyurl by id",
+)
 async def api_get_tinyurl(
     tinyurl_id: str, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
@@ -935,7 +948,11 @@ async def api_get_tinyurl(
         )
 
 
-@core_app.delete("/api/v1/tinyurl/{tinyurl_id}")
+@core_app.delete(
+    "/api/v1/tinyurl/{tinyurl_id}",
+    name="Tinyurl",
+    description="delete a tinyurl by id",
+)
 async def api_delete_tinyurl(
     tinyurl_id: str, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
@@ -954,16 +971,17 @@ async def api_delete_tinyurl(
         )
 
 
-@core_app.get("/t/{tinyurl_id}")
+@core_app.get(
+    "/t/{tinyurl_id}",
+    name="Tinyurl",
+    description="redirects a tinyurl by id",
+)
 async def api_tinyurl(tinyurl_id: str):
-    try:
-        tinyurl = await get_tinyurl(tinyurl_id)
-        if tinyurl:
-            response = RedirectResponse(url=tinyurl.url)
-            return response
-        else:
-            return
-    except Exception:
+    tinyurl = await get_tinyurl(tinyurl_id)
+    if tinyurl:
+        response = RedirectResponse(url=tinyurl.url)
+        return response
+    else:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail="unable to find tinyurl"
         )

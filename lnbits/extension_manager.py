@@ -204,7 +204,7 @@ class Extension(NamedTuple):
 
 
 class ExtensionManager:
-    def __init__(self):
+    def __init__(self) -> None:
         p = Path(settings.lnbits_path, "extensions")
         Path(p).mkdir(parents=True, exist_ok=True)
         self._extension_folders: List[Path] = [f for f in p.iterdir() if f.is_dir()]
@@ -426,7 +426,10 @@ class InstallableExtension(BaseModel):
         logger.success(f"Extension {self.name} ({self.installed_version}) installed.")
 
     def nofiy_upgrade(self) -> None:
-        """Update the list of upgraded extensions. The middleware will perform redirects based on this"""
+        """
+        Update the list of upgraded extensions. The middleware will perform
+        redirects based on this
+        """
 
         clean_upgraded_exts = list(
             filter(

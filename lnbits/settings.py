@@ -12,15 +12,15 @@ from loguru import logger
 from pydantic import BaseSettings, Extra, Field, validator
 
 
-def list_parse_fallback(v):
-    try:
-        return json.loads(v)
-    except Exception:
-        replaced = v.replace(" ", "")
-        if replaced:
-            return replaced.split(",")
+def list_parse_fallback(v: str):
+    v = v.replace(" ", "")
+    if len(v) > 0:
+        if v.startswith("[") or v.startswith("{"):
+            return json.loads(v)
         else:
-            return []
+            return v.split(",")
+    else:
+        return []
 
 
 class LNbitsSettings(BaseSettings):
@@ -113,7 +113,9 @@ class SecuritySettings(LNbitsSettings):
     lnbits_watchdog_interval: int = Field(default=60)
     lnbits_watchdog_delta: int = Field(default=1_000_000)
     lnbits_status_manifest: str = Field(
-        default="https://raw.githubusercontent.com/lnbits/lnbits-status/main/manifest.json"
+        default=(
+            "https://raw.githubusercontent.com/lnbits/lnbits-status/main/manifest.json"
+        )
     )
 
 
@@ -266,6 +268,7 @@ class EnvSettings(LNbitsSettings):
     host: str = Field(default="127.0.0.1")
     port: int = Field(default=5000)
     forwarded_allow_ips: str = Field(default="*")
+    lnbits_title: str = Field(default="LNbits API")
     lnbits_path: str = Field(default=".")
     lnbits_commit: str = Field(default="unknown")
     super_user: str = Field(default="")
@@ -376,7 +379,8 @@ def send_admin_user_to_saas():
                 logger.success("sent super_user to saas application")
             except Exception as e:
                 logger.error(
-                    f"error sending super_user to saas: {settings.lnbits_saas_callback}. Error: {str(e)}"
+                    "error sending super_user to saas:"
+                    f" {settings.lnbits_saas_callback}. Error: {str(e)}"
                 )
 
 
