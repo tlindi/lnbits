@@ -338,7 +338,7 @@ async def redeem_lnurl_withdraw(
 
     res = {}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(verify=not settings.debug) as client:
         lnurl = decode_lnurl(lnurl_request)
         r = await client.get(str(lnurl))
         res = r.json()
@@ -372,7 +372,7 @@ async def redeem_lnurl_withdraw(
     except Exception:
         pass
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(verify=not settings.debug) as client:
         try:
             await client.get(res["callback"], params=params)
         except Exception:
@@ -435,7 +435,7 @@ async def perform_lnurlauth(
 
     sig = key.sign_digest_deterministic(k1, sigencode=encode_strict_der)
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(verify=not settings.debug) as client:
         assert key.verifying_key, "LNURLauth verifying_key does not exist"
         r = await client.get(
             callback,

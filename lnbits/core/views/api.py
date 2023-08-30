@@ -252,7 +252,7 @@ async def api_payments_create_invoice(data: CreateInvoice, wallet: Wallet):
         if data.lnurl_balance_check is not None:
             await save_balance_check(wallet.id, data.lnurl_balance_check)
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(verify=not settings.debug) as client:
             try:
                 r = await client.get(
                     data.lnurl_callback,
@@ -539,7 +539,10 @@ async def api_lnurlscan(code: str, wallet: WalletTypeInfo = Depends(get_key_type
         assert lnurlauth_key.verifying_key
         params.update(pubkey=lnurlauth_key.verifying_key.to_string("compressed").hex())
     else:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
+        async with httpx.AsyncClient(
+            follow_redirects=True,
+            verify=not settings.debug,
+        ) as client:
             r = await client.get(url, timeout=5)
             r.raise_for_status()
             if r.is_error:
