@@ -69,9 +69,8 @@ async def get_user(
     user = await (conn or db).fetchone(
         "SELECT id, email FROM accounts WHERE id = ?", (user_id,)
     )
-
     if user:
-        clauses = ["user = ?"]
+        clauses = ['"user" = ?']
         values: List[Any] = [user_id]
 
         if not include_deleted_wallets:
