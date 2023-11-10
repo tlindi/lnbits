@@ -11,7 +11,6 @@ from bolt11 import Bolt11
 from bolt11 import decode as bolt11_decode
 from cryptography.hazmat.primitives import serialization
 from fastapi import Depends, WebSocket
-# from fastapi_login import LoginManager
 from lnurl import LnurlErrorResponse
 from lnurl import decode as decode_lnurl
 from loguru import logger
@@ -54,6 +53,7 @@ from .crud import (
 )
 from .helpers import to_valid_user_id
 from .models import Payment, Wallet
+
 
 class PaymentFailure(Exception):
     pass
