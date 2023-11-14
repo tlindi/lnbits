@@ -5,6 +5,7 @@ import importlib.metadata
 import inspect
 import json
 from enum import Enum
+from hashlib import sha256
 from os import path
 from sqlite3 import Row
 from time import time
@@ -314,7 +315,7 @@ class AuthMethods(Enum):
 
 
 class AuthSettings(LNbitsSettings):
-    auth_secret_key: str = Field(default="x1")  # todo: init to super user hash
+    auth_secret_key: str = Field(default="")
     auth_token_expire_minutes: int = Field(default=30)
     auth_allowed_methods: List[str] = Field(
         default=[AuthMethods.user_id_only, AuthMethods.username_and_password]
@@ -457,6 +458,9 @@ settings = Settings()
 settings.lnbits_path = str(path.dirname(path.realpath(__file__)))
 
 settings.version = importlib.metadata.version("lnbits")
+settings.auth_secret_key = (
+    settings.auth_secret_key or sha256(settings.super_user.encode("utf-8")).hexdigest()
+)
 
 # printing environment variable for debugging
 if not settings.lnbits_admin_ui:
