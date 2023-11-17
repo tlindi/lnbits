@@ -13,7 +13,6 @@ from fastapi import Query
 from lnurl import encode as lnurl_encode
 from loguru import logger
 from pydantic import BaseModel
-from pydantic.types import UUID4
 
 from lnbits.db import Connection, FilterModel, FromRowModel
 from lnbits.helpers import url_for
@@ -82,7 +81,7 @@ class WalletTypeInfo:
 
 class CreateUser(BaseModel):
     email: Optional[str] = Query(default=None)
-    username: str = Query(default=..., min_length=2, max_length=50)
+    username: str = Query(default=..., min_length=2, max_length=20)
     password: str = Query(default=..., min_length=8, max_length=50)
     password_repeat: str = Query(default=..., min_length=8, max_length=50)
 
