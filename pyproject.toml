@@ -111,6 +111,7 @@ module = [
   "pyln.client.*",
   "py_vapid.*",
   "pywebpush.*",
+  "fastapi_sso.sso.*"
 ]
 ignore_missing_imports = "True"
 
