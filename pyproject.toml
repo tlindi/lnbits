@@ -45,8 +45,6 @@ environs = "9.5.0"
 python-crontab = "3.0.0"
 python-jose = "^3.3.0"
 passlib = "^1.7.4"
-types-python-jose = "^3.3.4.8"
-types-passlib = "^1.7.7.13"
 itsdangerous = "^2.1.2"
 fastapi-sso = "^0.7.2"
 
@@ -63,6 +61,8 @@ ruff = "^0.0.291"
 # not our dependency but needed indirectly by openapi-spec-validator
 # we want to use 0.10.3 because newer versions are broken on nix
 rpds-py = "0.10.3"
+types-passlib = "^1.7.7.13"
+types-python-jose = "^3.3.4.8"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
