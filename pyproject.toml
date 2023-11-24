@@ -43,10 +43,10 @@ secp256k1 = "0.14.0"
 environs = "9.5.0"
 # needed for scheduler extension
 python-crontab = "3.0.0"
-python-jose = "^3.3.0"
-passlib = "^1.7.4"
-itsdangerous = "^2.1.2"
-fastapi-sso = "^0.7.2"
+python-jose = "3.3.0"
+passlib = "1.7.4"
+itsdangerous = "2.1.2"
+fastapi-sso = "0.7.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.7.0"
@@ -58,11 +58,11 @@ types-protobuf = "^4.24.0.2"
 pre-commit = "^3.2.2"
 openapi-spec-validator = "^0.6.0"
 ruff = "^0.0.291"
+types-passlib = "1.7.7.13"
+types-python-jose = "3.3.4.8"
 # not our dependency but needed indirectly by openapi-spec-validator
 # we want to use 0.10.3 because newer versions are broken on nix
 rpds-py = "0.10.3"
-types-passlib = "^1.7.7.13"
-types-python-jose = "^3.3.4.8"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
