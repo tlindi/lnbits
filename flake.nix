@@ -50,6 +50,26 @@
                 prev.poetry
               ];
             });
+            fastapi-sso = prev.fastapi-sso.overrideAttrs (old: {
+              nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+                prev.poetry
+              ];
+            });
+            types-python-jose = prev.types-python-jose.overrideAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [
+                prev.setuptools
+              ];
+            });
+            types-pyasn1 = prev.types-pyasn1.overrideAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [
+                prev.setuptools
+              ];
+            });
+            types-passlib = prev.types-passlib.overrideAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [
+                prev.setuptools
+              ];
+            });
           });
         };
       });
