@@ -9,6 +9,8 @@ window.localisation.en = {
   transactions: 'Transactions',
   dashboard: 'Dashboard',
   node: 'Node',
+  export_users: 'Export Users',
+  no_users: 'No users found',
   total_capacity: 'Total Capacity',
   avg_channel_size: 'Avg. Channel Size',
   biggest_channel_size: 'Biggest Channel Size',
@@ -227,5 +229,6 @@ window.localisation.en = {
   logout: 'Logout',
   look_and_feel: 'Look and Feel',
   language: 'Language',
-  color_scheme: 'Color Scheme'
+  color_scheme: 'Color Scheme',
+  hide_empty_wallets: 'Hide empty wallets'
 }

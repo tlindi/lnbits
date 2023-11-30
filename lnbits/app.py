@@ -58,7 +58,6 @@ from .middleware import (
 )
 from .requestvars import g
 from .tasks import (
-    check_pending_payments,
     internal_invoice_listener,
     invoice_listener,
     webhook_handler,
@@ -471,7 +470,7 @@ def register_async_tasks(app):
 
     @app.on_event("startup")
     async def listeners():
-        create_permanent_task(check_pending_payments)
+        # create_permanent_task(check_pending_payments)
         create_permanent_task(invoice_listener)
         create_permanent_task(internal_invoice_listener)
         create_permanent_task(cache.invalidate_forever)

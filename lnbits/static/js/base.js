@@ -144,6 +144,24 @@ window.LNbits = {
         '/api/v1/payments/' + paymentHash,
         wallet.inkey
       )
+    },
+    updateBalance: function (credit, user_id, wallet_id) {
+      return LNbits.api
+        .request('PUT', '/users/api/v1/topup/?usr=' + user_id, null, {
+          amount: credit,
+          id: wallet_id
+        })
+        .then(_ => {
+          Quasar.Notify.create({
+            type: 'positive',
+            message: 'Success! Added ' + credit + ' sats to ' + wallet_id,
+            icon: null
+          })
+          return parseInt(credit)
+        })
+        .catch(function (error) {
+          LNbits.utils.notifyApiError(error)
+        })
     }
   },
   events: {
@@ -400,6 +418,24 @@ window.LNbits = {
       converter.setFlavor('github')
       converter.setOption('simpleLineBreaks', true)
       return converter.makeHtml(text)
+    },
+    prepareFilterQuery(tableConfig, props) {
+      if (props) {
+        tableConfig.pagination = props.pagination
+      }
+      let pagination = tableConfig.pagination
+      tableConfig.loading = true
+      const query = {
+        limit: pagination.rowsPerPage,
+        offset: (pagination.page - 1) * pagination.rowsPerPage,
+        sortby: pagination.sortBy ?? '',
+        direction: pagination.descending ? 'desc' : 'asc',
+        ...tableConfig.filter
+      }
+      if (tableConfig.search) {
+        query.search = tableConfig.search
+      }
+      return new URLSearchParams(query)
     }
   }
 }
