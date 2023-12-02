@@ -159,9 +159,6 @@ class CoreLightningRestWallet(Wallet):
 
         data = r.json()
 
-        if data["status"] != "complete":
-            return PaymentResponse(False, None, None, None, "payment failed")
-
         checking_id = data["payment_hash"]
         preimage = data["payment_preimage"]
         fee_msat = data["msatoshi_sent"] - data["msatoshi"]
