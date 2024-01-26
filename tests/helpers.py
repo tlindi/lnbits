@@ -5,21 +5,21 @@ import random
 import string
 import time
 from subprocess import PIPE, Popen, TimeoutExpired
-from typing import Tuple
+from typing import Optional, Tuple
 
 import psycopg2
 from loguru import logger
-from pydantic import BaseModel
 from sqlalchemy.engine.url import make_url
 
 from lnbits import core
-from lnbits.db import DB_TYPE, POSTGRES
+from lnbits.db import DB_TYPE, POSTGRES, FromRowModel
 from lnbits.wallets import get_wallet_class, set_wallet_class
 
 
-class TestModel(BaseModel):
+class TestModel(FromRowModel):
     id: int
     name: str
+    value: Optional[str] = None
 
 
 def get_random_string(N: int = 10):
