@@ -143,7 +143,7 @@
           <br />
         </div>
       </div>
-      <div v-if="isSuperUser">
+      <div v-if="isSuperUser" ref="funding-sources">
         <lnbits-funding-sources
           :form-data="formData"
           :allowed-funding-sources="settings.lnbits_allowed_funding_sources"
