@@ -29,9 +29,14 @@
     "/static/i18n/we.js",
     "/static/i18n/pt.js",
     "/static/i18n/br.js",
+    "/static/i18n/cs.js",
+    "/static/i18n/sk.js",
+    "/static/i18n/kr.js",
+    "/static/i18n/fi.js",
     "/static/js/base.js",
     "/static/js/components.js",
     "/static/js/components/lnbits-funding-sources.js",
+    "/static/js/components/extension-settings.js",
     "/static/js/bolt11-decoder.js"
   ],
   "css": [
