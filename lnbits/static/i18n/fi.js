@@ -565,8 +565,8 @@ window.localisation.fi = {
   reset_wallet_keys: 'Uusi API-avaimet',
   reset_wallet_keys_desc:
     'Tämän lompakon API-avaimet uusitaan. Edelliset API-avaimet lakkaavat toimimasta ja uudet luodaan niiden tilalle..',
-  view_list: 'Näytä lompakot listana',
-  view_column: 'Näytä lompakot riveinä',
+  view_list: 'Näytä lompakot allekain',
+  view_column: 'Näytä lompakot rinnakkain',
   filter_payments: 'Suodata maksuja',
   filter_date: 'Suodata päiväyksellä'
 }
